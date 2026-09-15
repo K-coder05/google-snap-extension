@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Snapfit</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Snapfit</h1>
+      <form id="mode-form">
+        <fieldset>
+          <legend>Fullscreen mode</legend>
+
+          <label class="option">
+            <input type="radio" name="mode" value="auto" id="mode-auto" aria-describedby="mode-auto-desc" />
+            <span class="option-title">Auto <span class="default-badge">(default)</span></span>
+            <span class="option-desc" id="mode-auto-desc"
+              >Fullscreen fills the display when maximized, the window when snapped.</span
+            >
+          </label>
+
+          <label class="option">
+            <input type="radio" name="mode" value="window" id="mode-window" aria-describedby="mode-window-desc" />
+            <span class="option-title">Fit window</span>
+            <span class="option-desc" id="mode-window-desc">Always fill just this browser window.</span>
+          </label>
+
+          <label class="option">
+            <input type="radio" name="mode" value="display" id="mode-display" aria-describedby="mode-display-desc" />
+            <span class="option-title">Full display</span>
+            <span class="option-desc" id="mode-display-desc">Always use normal fullscreen.</span>
+          </label>
+        </fieldset>
+      </form>
+
+      <p id="sync-warning" class="warning" role="status" aria-live="polite" hidden>
+        Sync unavailable — your choice was saved locally instead.
+      </p>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
