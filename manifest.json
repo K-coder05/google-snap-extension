@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Snapfit — Fit-to-Window Fullscreen",
+  "version": "1.0.0",
+  "description": "Choose whether fullscreen fills your whole display or just your split-screen browser window.",
+  "minimum_chrome_version": "111",
+  "action": {},
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/hook.js"],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/bridge.js"],
+      "world": "ISOLATED",
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}
