@@ -1,0 +1,20 @@
+{
+  "name": "snapfit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Choose whether fullscreen fills your whole display or just your split-screen browser window.",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "lint": "eslint src test"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23",
+    "eslint": "^9",
+    "playwright": "^1.47",
+    "vitest": "^2"
+  }
+}
