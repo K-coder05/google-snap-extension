@@ -30,18 +30,25 @@ export async function migrate(stored) {
   return { ...stored, schemaVersion: SCHEMA_VERSION };
 }
 
+// Merges both areas rather than preferring sync outright: once sync has ever
+// been seeded it's never empty again, so a later write that fell back to
+// local (see writeStorage) would otherwise be masked by stale sync data.
+// local only ever holds keys a fallback wrote, so it's the freshest source
+// for those keys and safely overrides sync here.
 async function readStorage() {
+  let synced = {};
+  let local = {};
   try {
-    const stored = await chrome.storage.sync.get(null);
-    if (stored && Object.keys(stored).length > 0) return stored;
+    synced = await chrome.storage.sync.get(null);
   } catch {
-    // fall through to local
+    // sync unavailable; fall through with whatever local has
   }
   try {
-    return await chrome.storage.local.get(null);
+    local = await chrome.storage.local.get(null);
   } catch {
-    return {};
+    // local unavailable too; synced (if any) is all we have
   }
+  return { ...synced, ...local };
 }
 
 // Prefers sync (roams with the profile); falls back to local if the sync

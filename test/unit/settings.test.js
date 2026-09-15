@@ -45,6 +45,17 @@ describe('getSettings', () => {
     expect(settings.mode).toBe('display');
   });
 
+  it('prefers a local value over stale sync data for the same key', async () => {
+    // Simulates a setMode write that fell back to local after sync was
+    // already seeded: sync still holds the old mode, local holds the new one.
+    installChromeMock({
+      sync: makeStorageArea({ mode: 'auto', schemaVersion: SCHEMA_VERSION, advanced: DEFAULTS.advanced }),
+      local: makeStorageArea({ mode: 'window' })
+    });
+    const settings = await getSettings();
+    expect(settings.mode).toBe('window');
+  });
+
   it('ignores an invalid stored mode and falls back to the default', async () => {
     installChromeMock({ sync: makeStorageArea({ mode: 'bogus' }) });
     const settings = await getSettings();
