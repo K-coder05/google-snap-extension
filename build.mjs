@@ -6,7 +6,8 @@ const watch = process.argv.includes('--watch');
 // mandatory there so bundler globals never leak into a live page.
 const entries = [
   { in: 'src/content/hook.js', out: 'dist/hook.js', format: 'iife' },
-  { in: 'src/content/bridge.js', out: 'dist/bridge.js', format: 'iife' }
+  { in: 'src/content/bridge.js', out: 'dist/bridge.js', format: 'iife' },
+  { in: 'src/background/service-worker.js', out: 'dist/service-worker.js', format: 'esm' }
 ];
 
 const contexts = await Promise.all(
