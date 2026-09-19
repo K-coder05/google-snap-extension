@@ -14,6 +14,7 @@
   "devDependencies": {
     "esbuild": "^0.23",
     "eslint": "^9",
+    "jsdom": "^29.1.1",
     "playwright": "^1.47",
     "vitest": "^2"
   }

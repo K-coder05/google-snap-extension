@@ -8,3 +8,8 @@ export const READY_ATTR = 'data-snapfit-ready';
 // propagate via chrome.storage.onChanged, never this channel.
 export const STATE_MESSAGE_TYPE = 'SNAPFIT_GET_STATE';
 export const STATE_PORT_NAME = 'snapfit-state-live';
+
+// Pseudo-fullscreen CSS hooks (see SPEC.md §4.1, §6).
+export const CLS_ACTIVE = 'snapfit-fs'; // on the fullscreened element
+export const CLS_LOCK = 'snapfit-lock'; // on <html> and <body>
+export const CLS_NEUTRALIZED = 'snapfit-neutralized'; // on offending ancestors
