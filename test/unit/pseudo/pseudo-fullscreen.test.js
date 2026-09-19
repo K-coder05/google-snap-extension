@@ -173,6 +173,27 @@ describe('exitPseudo', () => {
     expect(() => exitPseudo()).not.toThrow();
     expect(isPseudoActive()).toBe(false);
   });
+
+  it('invokes onExit exactly once, after state has already cleared', () => {
+    const onExit = vi.fn(() => {
+      expect(isPseudoActive()).toBe(false);
+    });
+    enterPseudo(target(), { onExit });
+
+    exitPseudo();
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
+
+  it('invokes the outgoing element onExit when entering pseudo on a different element', () => {
+    document.body.innerHTML = '<div id="target"></div><div id="other"></div>';
+    const onExit = vi.fn();
+    enterPseudo(document.getElementById('target'), { onExit });
+
+    enterPseudo(document.getElementById('other'));
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Escape handling', () => {

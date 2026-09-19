@@ -5,6 +5,7 @@
 import { MODE, MODE_ATTR } from '../../shared/constants.js';
 import { readWindowGeometry } from '../../shared/geometry.js';
 import { classifyWindow } from '../../shared/snap.js';
+import { escalateToAncestors, installFrameRelay, releaseFromAncestors } from './frames.js';
 import { enterPseudo, exitPseudo, isPseudoActive, pseudoElement } from './pseudo-fullscreen.js';
 
 // Several players feature-detect the Fullscreen API by stringifying it.
@@ -35,13 +36,37 @@ function spoof(patched, original) {
 // (MODE_ATTR) instead of this module reading chrome.storage directly
 // (SPEC.md §5.2).
 export function resolveMode() {
-  if (window !== window.top) return MODE.DISPLAY; // no cross-frame escalation yet (SPEC.md §9)
-
   const raw = document.documentElement?.getAttribute(MODE_ATTR) || MODE.AUTO;
   if (raw === MODE.WINDOW || raw === MODE.DISPLAY) return raw;
 
   const { layout } = classifyWindow(readWindowGeometry());
   return layout === 'maximized' ? MODE.DISPLAY : MODE.WINDOW;
+}
+
+// Nested frames resolve WINDOW the same as the top frame; entering pseudo
+// locally only fills the requesting frame's own box (a 640x360 iframe rect),
+// so a non-top frame also escalates the claim up through every ancestor via
+// frames.js (SPEC.md §9) so each level expands its local iframe element in
+// turn, all the way to the top-level viewport. The escalation token is
+// released — walking back down the same chain — whenever this element's
+// pseudo-fullscreen exits, however that exit was triggered (Escape,
+// exitFullscreen(), another element taking over, or even an ancestor frame
+// exiting first and pushing the release back down).
+function enterPseudoWithEscalation(el) {
+  // enterPseudo() is a no-op when el is already the active element — bail
+  // out before escalating again, or a second requestFullscreen() call on an
+  // already-fullscreen element would mint a second token/claim that nothing
+  // ever releases (the closure holding the *first* token's onExit is gone,
+  // orphaning that entry in every ancestor's relay state).
+  if (isPseudoActive() && pseudoElement() === el) return;
+
+  const escalation = { token: null };
+  enterPseudo(el, {
+    onExit: () => {
+      if (escalation.token) releaseFromAncestors(escalation.token);
+    }
+  });
+  if (window !== window.top) escalation.token = escalateToAncestors();
 }
 
 // `display` must invoke the native method as the first synchronous action
@@ -53,7 +78,7 @@ function patchRequestFullscreen(native) {
   return spoof(function requestFullscreen(options) {
     if (resolveMode() === MODE.DISPLAY) return native.call(this, options);
     try {
-      enterPseudo(this);
+      enterPseudoWithEscalation(this);
       return Promise.resolve();
     } catch {
       return native.call(this, options);
@@ -70,7 +95,7 @@ function patchLegacyRequest(native) {
       return;
     }
     try {
-      enterPseudo(this);
+      enterPseudoWithEscalation(this);
     } catch {
       native.call(this, options);
     }
@@ -130,6 +155,8 @@ function patchAccessor(proto, prop, getPseudoValue) {
 }
 
 export function installFullscreenShim() {
+  installFrameRelay();
+
   patchMethod(Element.prototype, 'requestFullscreen', patchRequestFullscreen);
   patchMethod(Element.prototype, 'webkitRequestFullscreen', patchLegacyRequest);
   patchMethod(Element.prototype, 'webkitRequestFullScreen', patchLegacyRequest);

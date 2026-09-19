@@ -13,3 +13,7 @@ export const STATE_PORT_NAME = 'snapfit-state-live';
 export const CLS_ACTIVE = 'snapfit-fs'; // on the fullscreened element
 export const CLS_LOCK = 'snapfit-lock'; // on <html> and <body>
 export const CLS_NEUTRALIZED = 'snapfit-neutralized'; // on offending ancestors
+
+// Cross-frame escalation postMessage protocol (SPEC.md §9).
+export const FRAME_NS = '__snapfit__';
+export const FRAME_MSG = Object.freeze({ CLAIM: 'claim', GRANTED: 'granted', RELEASE: 'release' });
