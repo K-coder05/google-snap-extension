@@ -1,5 +1,9 @@
 export const MODE = Object.freeze({ AUTO: 'auto', WINDOW: 'window', DISPLAY: 'display' });
 
+// Single switch for all debug console output (see shared/log.js). Off by
+// default for the shipped build; flip to true for local development only.
+export const DEBUG = false;
+
 // DOM channel between the ISOLATED Bridge and the MAIN-world Hook (see CONTEXT.md).
 export const MODE_ATTR = 'data-snapfit-mode';
 export const READY_ATTR = 'data-snapfit-ready';

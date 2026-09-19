@@ -2,10 +2,11 @@
 // realm, with access to chrome.* APIs the MAIN-world hook cannot reach.
 import { MODE_ATTR, READY_ATTR, STATE_MESSAGE_TYPE, STATE_PORT_NAME } from '../shared/constants.js';
 import { readWindowGeometry } from '../shared/geometry.js';
+import { debugLog } from '../shared/log.js';
 import { getSettings, onSettingsChanged } from '../shared/settings.js';
 import { classifyWindow } from '../shared/snap.js';
 
-console.debug('[Snapfit] bridge loaded (ISOLATED world)');
+debugLog('[Snapfit] bridge loaded (ISOLATED world)');
 
 // Live status readout for the popup (SPEC.md §7.3). Layout only for now —
 // videoCount/pseudoActive are added once the hook (MAIN world) exists to ask.
