@@ -5,6 +5,7 @@
   "description": "Choose whether fullscreen fills your whole display or just your split-screen browser window.",
   "minimum_chrome_version": "111",
   "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "dist/service-worker.js", "type": "module" },
   "action": {
     "default_popup": "src/popup/popup.html",
