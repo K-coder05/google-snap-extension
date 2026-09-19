@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CLS_ACTIVE, MODE, MODE_ATTR } from '../../../src/shared/constants.js';
+import { CLS_ACTIVE, FRAME_MSG, FRAME_NS, MODE, MODE_ATTR } from '../../../src/shared/constants.js';
 import { installFullscreenShim, resolveMode } from '../../../src/content/pseudo/fullscreen-shim.js';
 import { isPseudoActive, pseudoElement, exitPseudo } from '../../../src/content/pseudo/pseudo-fullscreen.js';
 import { installNativeFullscreenMocks } from '../../helpers/fullscreen-natives-mock.js';
 import { MockResizeObserver } from '../../helpers/resize-observer-mock.js';
+import { postMessageSource, saveWindowFrameRefs } from '../../helpers/window-frame-refs-mock.js';
 
 function setGeometry({
   availWidth = 1920,
@@ -29,15 +30,7 @@ function setGeometry({
 const MAXIMIZED = { outerWidth: 1920, outerHeight: 1032 };
 const SNAPPED_LEFT = { outerWidth: 960, outerHeight: 1032 };
 
-// Object.defineProperty(window, 'top', ...) below replaces jsdom's real
-// self-referencing accessor with a plain data property; a bare `delete`
-// afterward leaves `window.top` undefined instead of restoring it, which
-// silently corrupts every later test's iframe check. Restore the exact
-// original descriptor instead.
-const ORIGINAL_TOP_DESCRIPTOR = Object.getOwnPropertyDescriptor(window, 'top');
-function restoreWindowTop() {
-  Object.defineProperty(window, 'top', ORIGINAL_TOP_DESCRIPTOR);
-}
+const restoreWindowTop = saveWindowFrameRefs();
 
 describe('resolveMode', () => {
   beforeEach(() => {
@@ -49,11 +42,11 @@ describe('resolveMode', () => {
     restoreWindowTop();
   });
 
-  it('returns DISPLAY for a non-top-level frame regardless of the stored mode', () => {
+  it('resolves the same explicit mode in a non-top-level frame (escalation handles the expansion)', () => {
     document.documentElement.setAttribute(MODE_ATTR, MODE.WINDOW);
     Object.defineProperty(window, 'top', { value: {}, configurable: true });
 
-    expect(resolveMode()).toBe(MODE.DISPLAY);
+    expect(resolveMode()).toBe(MODE.WINDOW);
   });
 
   it('returns the explicit mode when set to window', () => {
@@ -147,14 +140,55 @@ describe('installFullscreenShim routing', () => {
       expect(target().classList.contains(CLS_ACTIVE)).toBe(false);
     });
 
-    it('falls back to native fullscreen from a non-top-level frame', () => {
+    it('enters pseudo-fullscreen locally and escalates the claim to the parent frame from a non-top-level frame', () => {
       document.documentElement.setAttribute(MODE_ATTR, MODE.WINDOW);
       Object.defineProperty(window, 'top', { value: {}, configurable: true });
+      const parent = postMessageSource();
+      Object.defineProperty(window, 'parent', { value: parent, configurable: true });
 
       target().requestFullscreen();
 
-      expect(natives.calls.requestFullscreen).toHaveBeenCalledWith(target(), undefined);
-      expect(isPseudoActive()).toBe(false);
+      expect(natives.calls.requestFullscreen).not.toHaveBeenCalled();
+      expect(isPseudoActive()).toBe(true);
+      expect(pseudoElement()).toBe(target());
+      expect(parent.postMessage).toHaveBeenCalledTimes(1);
+      const [message, targetOrigin] = parent.postMessage.mock.calls[0];
+      expect(message[FRAME_NS]).toBe(FRAME_MSG.CLAIM);
+      expect(typeof message.token).toBe('string');
+      expect(targetOrigin).toBe('*');
+    });
+
+    it('releases the escalation claim when exiting pseudo-fullscreen from a non-top-level frame', () => {
+      document.documentElement.setAttribute(MODE_ATTR, MODE.WINDOW);
+      Object.defineProperty(window, 'top', { value: {}, configurable: true });
+      const parent = postMessageSource();
+      Object.defineProperty(window, 'parent', { value: parent, configurable: true });
+
+      target().requestFullscreen();
+      const token = parent.postMessage.mock.calls[0][0].token;
+      parent.postMessage.mockClear();
+
+      document.exitFullscreen();
+
+      expect(parent.postMessage).toHaveBeenCalledWith({ [FRAME_NS]: FRAME_MSG.RELEASE, token }, '*');
+    });
+
+    it('does not re-escalate on a second requestFullscreen() for the already-active element', () => {
+      document.documentElement.setAttribute(MODE_ATTR, MODE.WINDOW);
+      Object.defineProperty(window, 'top', { value: {}, configurable: true });
+      const parent = postMessageSource();
+      Object.defineProperty(window, 'parent', { value: parent, configurable: true });
+
+      target().requestFullscreen();
+      parent.postMessage.mockClear();
+
+      target().requestFullscreen();
+
+      // A second claim/token here would orphan the first one in every
+      // ancestor's relay state, since only the latest token ever gets
+      // released.
+      expect(parent.postMessage).not.toHaveBeenCalled();
+      expect(isPseudoActive()).toBe(true);
     });
   });
 

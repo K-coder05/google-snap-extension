@@ -53,7 +53,12 @@ export function pseudoElement() {
 // options.escToExit seams in the advanced.escToExit setting (SPEC.md §4.3);
 // defaults on since this module has no access to chrome.storage (MAIN
 // world) — the caller that does read settings is responsible for passing it.
-export function enterPseudo(el, { escToExit = true } = {}) {
+// options.onExit is an escape hatch for callers that need to react to *any*
+// exit regardless of trigger (Escape, exitFullscreen(), or entering pseudo on
+// a different element) — e.g. frames.js releasing a cross-frame escalation
+// claim (SPEC.md §9). This module stays frame-agnostic; it just guarantees
+// the hook always fires exactly once per enter.
+export function enterPseudo(el, { escToExit = true, onExit } = {}) {
   if (state) {
     if (state.element === el) return;
     exitPseudo();
@@ -74,7 +79,8 @@ export function enterPseudo(el, { escToExit = true } = {}) {
     resizeObserver,
     mutationObserver,
     rafId: null,
-    escToExit
+    escToExit,
+    onExit
   };
 
   el.classList.add(CLS_ACTIVE);
@@ -95,7 +101,7 @@ export function enterPseudo(el, { escToExit = true } = {}) {
 
 export function exitPseudo() {
   if (!state) return;
-  const { element, neutralized, scrollX, scrollY, resizeObserver, mutationObserver, rafId, escToExit } = state;
+  const { element, neutralized, scrollX, scrollY, resizeObserver, mutationObserver, rafId, escToExit, onExit } = state;
 
   resizeObserver.disconnect();
   mutationObserver.disconnect();
@@ -113,4 +119,6 @@ export function exitPseudo() {
   dispatchFullscreenChange(element);
   window.dispatchEvent(new Event('resize'));
   window.scrollTo(scrollX, scrollY);
+
+  onExit?.();
 }
