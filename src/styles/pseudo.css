@@ -1,0 +1,41 @@
+/* Injected as a content-script stylesheet (SPEC.md §6.2). Every declaration
+   carries !important — pages routinely set their own !important rules on
+   the player element, and this must win. */
+
+html.snapfit-lock,
+body.snapfit-lock {
+  overflow: hidden !important;
+}
+
+.snapfit-fs {
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  z-index: 2147483647 !important;
+  background: #000 !important;
+}
+
+.snapfit-fs video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.snapfit-neutralized {
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  perspective: none !important;
+  contain: none !important;
+  will-change: auto !important;
+}
