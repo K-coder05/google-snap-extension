@@ -23,7 +23,10 @@ body.snapfit-lock {
   background: #000 !important;
 }
 
-.snapfit-fs video {
+/* Direct-child only: nested players (YouTube's .html5-video-container, etc.)
+   size and position their own <video> inline. Forcing height: 100% there
+   resolves against an indefinite-height parent and collapses to 0. */
+.snapfit-fs > video {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
