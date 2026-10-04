@@ -1,6 +1,6 @@
 {
   "name": "snapfit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Choose whether fullscreen fills your whole display or just your split-screen browser window.",
@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "lint": "eslint src test",
-    "zip": "npm run build && zip -r snapfit.zip manifest.json dist icons src/popup src/styles"
+    "zip": "npm run build && node scripts/zip.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.23",

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Snapfit — Fit-to-Window Fullscreen",
-  "version": "1.0.0",
-  "description": "Choose whether fullscreen fills your whole display or just your split-screen browser window.",
+  "name": "Snapfit — Fullscreen Video in Your Browser Window",
+  "version": "1.0.1",
+  "description": "Make video fullscreen fill just the browser window instead of the whole display, so the rest of your screen stays visible.",
   "minimum_chrome_version": "111",
   "permissions": ["storage"],
   "host_permissions": ["<all_urls>"],

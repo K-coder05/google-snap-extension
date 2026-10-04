@@ -1,0 +1,3 @@
+# Floating windows use pseudo-fullscreen in auto mode
+
+`auto` mode resolves any non-`maximized` Layout — including `floating` (a resizable window that isn't snapped to anything) — to `window` (pseudo-fullscreen), not just the `half-*`/`quarter` snap layouts the extension was built for. We considered special-casing `floating` to fall back to native fullscreen, since a floating window has no "other half" to protect. We kept the simpler rule instead: `auto`'s tie-break is "never take over the whole display unless the user actually maximized the window," and a floating window is still a case where the user chose not to maximize. This avoids a second special case in the Layout classifier's contract and keeps the mental model to one rule instead of two.

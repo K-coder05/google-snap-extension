@@ -1,0 +1,3 @@
+# `<all_urls>` host permission for v1
+
+Snapfit needs `host_permissions: ["<all_urls>"]` so the popup can query the active tab's status on any site, and there's no way to predict in advance which sites a user will watch video on. The alternative, `optional_host_permissions` with per-origin grants via `chrome.scripting.registerContentScripts`, would shrink the install warning but requires building a per-origin grant UI and background-worker registration flow before knowing whether it's actually needed. We're shipping `<all_urls>` for v1 and deferring the optional-permissions migration to the stretch backlog, to be picked up only if Chrome Web Store review specifically objects to the broad permission.
